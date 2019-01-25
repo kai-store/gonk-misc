@@ -1,0 +1,103 @@
+. "$topsrcdir/b2g/config/mozconfigs/common"
+
+ac_add_options --target-build-variant="$TARGET_BUILD_VARIANT"
+
+if [ "$TARGET_BUILD_VARIANT" != "user" ] ; then
+ENABLE_MARIONETTE=1
+ENABLE_TESTS=1
+fi
+
+mk_add_options MOZ_OBJDIR="$GECKO_OBJDIR"
+
+if [ "$TARGET_ARCH" = "x86" ]; then
+ac_add_options --target=i686-android-linux
+else
+ac_add_options --target=arm-linux-androideabi
+fi
+ac_add_options --with-gonk="$GONK_PATH"
+ac_add_options --with-gonk-toolchain-prefix="$GECKO_TOOLS_PREFIX"
+
+ac_add_options --enable-application=b2g
+
+if [ -f "$KAI_GEO_KEY_FILE" ]; then
+ac_add_options --with-kaios-geo-api-keyfile="$KAI_GEO_KEY_FILE"
+fi
+
+if [ -f "$KAI_PUSH_KEY_FILE" ]; then
+ac_add_options --with-kaios-push-api-keyfile="$KAI_PUSH_KEY_FILE"
+fi
+
+ac_add_options --enable-debug-symbols
+if [ "${B2G_DEBUG:-0}" != "0" ]; then
+ac_add_options --enable-debug
+fi
+
+if [ "${B2G_NOOPT:-0}" != "0" ]; then
+ac_add_options --disable-optimize
+fi
+
+if [ "${B2G_DUMP_PAINTING:-0}" != "0" ]; then
+ac_add_options --enable-dump-painting
+fi
+
+ac_add_options --with-ccache
+
+if [ "${DISABLE_JEMALLOC:-0}" != "0" ] ||
+   [ "${PLATFORM_SDK_VERSION:-0}" -ge "22" -a "$MALLOC_IMPL" != "dlmalloc" ]; then
+ac_add_options --disable-jemalloc
+fi
+
+if [ "${B2G_VALGRIND:-0}" != "0" ]; then
+ac_add_options --enable-valgrind
+ac_add_options --enable-profiling
+fi
+
+if [ "${MOZ_NON_UNIFIED:-0}" != "0" ] ; then
+ac_add_options --disable-unified-compilation
+fi
+
+if [ "${B2G_PROFILING:-0}" != "0" ]; then
+ac_add_options --enable-profiling
+fi
+
+if [ "$HOST_OS" != "linux" ]; then
+ac_add_options --disable-crashreporter
+fi
+
+# Always disable Gecko's standard updater since we don't use it.
+ac_add_options --disable-updater
+
+# Enable dump() from JS.
+export CXXFLAGS="-DMOZ_ENABLE_JS_DUMP $EXTRA_INCLUDE $EXTRA_CXXFLAGS ${CXXFLAGS}"
+
+ac_add_options --with-fpu="$ARCH_ARM_VFP"
+
+if [ "${MOZ_DMD:-0}" != 0 ]; then
+  ac_add_options --enable-dmd
+fi
+
+if [ "${ENABLE_GLOBAL_PRELINK:-0}" != 0 ]; then
+# Disable ELF_HACK on B2G for prelink.
+ac_add_options --disable-elf-hack
+fi
+
+ac_add_options --without-intl-api
+
+if [ "$TARGET_BUILD_VARIANT" = eng ]; then
+  # bug 979947 - Engineering builds should have
+  # the profiler enabled by default
+  ac_add_options --enable-profiling
+fi
+
+if [ "$TARGET_BUILD_VARIANT" = "user" ] ; then
+  ac_add_options --disable-security-ports
+fi
+
+ac_add_options --disable-presentation
+
+ac_add_options --disable-feeds
+ac_add_options --disable-telemetry
+
+if [ "$BOARD_ENABLE_OMADM_REDBEND" = "true" ]; then
+ac_add_options --enable-omadm-redbend
+fi

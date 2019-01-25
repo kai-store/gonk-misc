@@ -1,0 +1,24 @@
+# gonksched
+type gonksched, domain;
+type gonksched_exec, exec_type, file_type;
+
+init_daemon_domain(gonksched)
+
+binder_use(gonksched)
+
+# audit2allow
+allow gonksched b2g:dir search;
+allow gonksched b2g:process setsched;
+allow gonksched mediaserver:dir search;
+allow gonksched mediaserver:process setsched;
+allow gonksched plugin-container:dir search;
+allow gonksched plugin-container:process setsched;
+allow gonksched self:capability sys_nice;
+allow gonksched system_server_service:service_manager add;
+allow gonksched dumpstate:fd use;
+allow gonksched dumpstate:unix_stream_socket rw_socket_perms;
+allow gonksched devpts:chr_file rw_file_perms;
+
+# other domains that interact with gonksched domain
+allow mediaserver gonksched:binder call;
+allow dumpstate gonksched:binder call;
